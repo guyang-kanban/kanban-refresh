@@ -1,0 +1,29 @@
+name: 履约看板自动刷新
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # 每5分钟执行一次
+  workflow_dispatch:          # 支持手动触发
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 依赖
+        run: pip install requests
+
+      - name: 写入 Cookie 文件
+        run: echo '${{ secrets.QNH_COOKIES }}' > qnh_cookies.json
+
+      - name: 写入 Supabase 配置
+        run: |
+          echo '${{ secrets.SUPABASE_CONFIG }}' > supabase_config_tmp.json
+
+      - name: 运行刷新脚本
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python3 run_all.py
